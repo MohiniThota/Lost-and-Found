@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FindIt — Community Lost & Found Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+            <circle cx="11" cy="11" r="3" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <span class="brand-text">Find<strong>It</strong></span>
+        <span class="brand-tagline">Lost & Found Portal</span>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="checkClaimGlobalBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Check My Claim
+        </button>
+        <button class="btn btn-primary" id="openReportModalBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Report an Item
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Impact Statistics -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1>Lost something? Or found an item?</h1>
+        <p>Post discovered belongings with photo and place details. Owners can submit verification proof, and finders safely connect to return them.</p>
+        
+        <div class="stats-ribbon">
+          <div class="stat-pill">
+            <span class="stat-number" id="statTotal">0</span>
+            <span class="stat-label">Total Items</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-number stat-found" id="statFound">0</span>
+            <span class="stat-label">Found Items</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-number stat-lost" id="statLost">0</span>
+            <span class="stat-label">Lost Reports</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-number stat-resolved" id="statResolved">0</span>
+            <span class="stat-label">Reunited / Claimed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controls & Filters -->
+  <main class="main-content">
+    <div class="controls-panel">
+      <!-- Search input -->
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search by item name, location, or keyword..." autocomplete="off">
+        <button id="clearSearchBtn" class="clear-btn" style="display: none;">&times;</button>
+      </div>
+
+      <!-- Type Filter Tabs -->
+      <div class="type-filter-group" id="typeFilters">
+        <button class="type-chip active" data-type="all">All Items</button>
+        <button class="type-chip" data-type="found">
+          <span class="dot dot-found"></span> Found Items
+        </button>
+        <button class="type-chip" data-type="lost">
+          <span class="dot dot-lost"></span> Lost Items
+        </button>
+      </div>
+
+      <!-- Dropdown Filters -->
+      <div class="dropdown-filters">
+        <div class="select-wrapper">
+          <label for="categoryFilter">Category</label>
+          <select id="categoryFilter">
+            <option value="all">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Wallets & Bags">Wallets & Bags</option>
+            <option value="Keys">Keys</option>
+            <option value="Documents & IDs">Documents & IDs</option>
+            <option value="Jewelry">Jewelry</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="select-wrapper">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="claimed">Claimed</option>
+            <option value="returned">Returned</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Grid Section -->
+    <div class="items-header">
+      <h2 id="itemsCountTitle">Browsing All Items</h2>
+      <button class="btn-refresh" id="refreshBtn" title="Refresh List">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="items-grid" id="itemsGrid">
+      <!-- Dynamic Item Cards Rendered Here -->
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="m15 9-6 6"></path>
+          <path d="m9 9 6 6"></path>
+        </svg>
+      </div>
+      <h3>No items found</h3>
+      <p>Try clearing filters or be the first to post an item.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('openReportModalBtn').click()">Report an Item</button>
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal 1: Report Item (Lost / Found) -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h3 id="reportModalTitle">Report an Item</h3>
+          <p class="modal-subtitle">Share details so owners and finders can connect</p>
+        </div>
+        <button class="close-modal" id="closeReportModal">&times;</button>
+      </div>
+
+      <form id="reportForm" class="modal-body" enctype="multipart/form-data">
+        <!-- Type Selection Toggle -->
+        <div class="form-group">
+          <label class="form-label">I want to report:</label>
+          <div class="report-type-toggle">
+            <label class="toggle-option">
+              <input type="radio" name="type" value="found" checked>
+              <div class="toggle-card found-card">
+                <span class="toggle-icon">🟢</span>
+                <span class="toggle-title">I Found Something</span>
+                <span class="toggle-desc">Help return it to the rightful owner</span>
+              </div>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="type" value="lost">
+              <div class="toggle-card lost-card">
+                <span class="toggle-icon">🟠</span>
+                <span class="toggle-title">I Lost Something</span>
+                <span class="toggle-desc">Ask the community for help finding it</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <!-- Item Title -->
+          <div class="form-group full-width">
+            <label class="form-label" for="reportTitle">Item Name / Title *</label>
+            <input type="text" id="reportTitle" name="title" required placeholder="e.g. Black Leather Wallet, Silver Casio Watch">
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label" for="reportCategory">Category *</label>
+            <select id="reportCategory" name="category" required>
+              <option value="">Select Category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Wallets & Bags">Wallets & Bags</option>
+              <option value="Keys">Keys</option>
+              <option value="Documents & IDs">Documents & IDs</option>
+              <option value="Jewelry">Jewelry</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label class="form-label" for="reportDate">Date Found / Lost *</label>
+            <input type="date" id="reportDate" name="item_date" required>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group full-width">
+            <label class="form-label" for="reportLocation">Exact Place / Location Details *</label>
+            <input type="text" id="reportLocation" name="location" required placeholder="e.g. Central Library 2nd Floor near Table 14">
+            <span class="field-hint">Be specific so the person recognizes the exact vicinity.</span>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group full-width">
+            <label class="form-label" for="reportDesc">Item Description</label>
+            <textarea id="reportDesc" name="description" rows="3" placeholder="Describe color, brand, condition, or a secret hint (e.g. 'Has distinct sticker' or 'Ask for ID name')."></textarea>
+          </div>
+
+          <!-- Image Upload with Preview -->
+          <div class="form-group full-width">
+            <label class="form-label">Upload Photo (Recommended)</label>
+            <div class="image-dropzone" id="imageDropzone">
+              <input type="file" id="imageInput" name="image" accept="image/*" class="file-input">
+              <div class="dropzone-content" id="dropzonePrompt">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Click or drag & drop an image here</p>
+                <span>Supports JPG, PNG, WEBP up to 16MB</span>
+              </div>
+              <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <img id="imagePreview" alt="Upload Preview">
+                <button type="button" class="remove-preview-btn" id="removeImageBtn">&times;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="form-divider full-width">
+            <span>Your Contact Details (Finder / Owner)</span>
+          </div>
+
+          <!-- Poster Name -->
+          <div class="form-group">
+            <label class="form-label" for="posterName">Your Full Name *</label>
+            <input type="text" id="posterName" name="poster_name" required placeholder="e.g. Sarah Jenkins">
+          </div>
+
+          <!-- Poster Email -->
+          <div class="form-group">
+            <label class="form-label" for="posterEmail">Your Email *</label>
+            <input type="email" id="posterEmail" name="poster_email" required placeholder="name@example.com">
+          </div>
+
+          <!-- Poster Phone -->
+          <div class="form-group">
+            <label class="form-label" for="posterPhone">Phone / WhatsApp (Optional)</label>
+            <input type="text" id="posterPhone" name="poster_phone" placeholder="+1 (555) 012-3456">
+          </div>
+
+          <!-- Secret PIN -->
+          <div class="form-group">
+            <label class="form-label" for="posterPin">Create 4-Digit Management PIN *</label>
+            <input type="password" id="posterPin" name="poster_pin" maxlength="6" required placeholder="e.g. 1234">
+            <span class="field-hint">Remember this PIN! You will need it to review claims, mark as returned, or delete this post.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelReportBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitReportBtn">Publish Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Item Details & Claim -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <div>
+          <h3 id="detailTitle">Item Details</h3>
+          <span class="detail-meta-tags" id="detailMetaTags"></span>
+        </div>
+        <button class="close-modal" id="closeDetailsModal">&times;</button>
+      </div>
+
+      <div class="modal-body details-layout">
+        <!-- Left: Image Preview -->
+        <div class="details-media-box">
+          <div class="details-image-frame" id="detailImageFrame">
+            <!-- Dynamic Image or Fallback SVG -->
+          </div>
+        </div>
+
+        <!-- Right: Information & Claim Actions -->
+        <div class="details-info-box">
+          <div class="info-group">
+            <label>Location Found / Lost</label>
+            <div class="info-value location-highlight" id="detailLocation"></div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-group">
+              <label>Date</label>
+              <div class="info-value" id="detailDate"></div>
+            </div>
+            <div class="info-group">
+              <label>Category</label>
+              <div class="info-value" id="detailCategory"></div>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <label>Description</label>
+            <div class="info-value description-text" id="detailDescription"></div>
+          </div>
+
+          <div class="info-group">
+            <label>Reported By</label>
+            <div class="info-value" id="detailPoster"></div>
+          </div>
+
+          <!-- In-app Claim System Section -->
+          <div class="claim-action-panel" id="claimActionPanel">
+            <!-- Will be dynamically injected: Claim button, Claim form, or Claim status -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Poster Management (PIN Authenticated) -->
+  <div class="modal-overlay" id="manageModal">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <div>
+          <h3>Manage Post & Review Claims</h3>
+          <p class="modal-subtitle" id="manageSubtitle">Enter your 4-digit PIN to manage this listing</p>
+        </div>
+        <button class="close-modal" id="closeManageModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- PIN Gate Form -->
+        <div id="pinGateView">
+          <div class="pin-box">
+            <div class="pin-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h4>Enter Management PIN</h4>
+            <p>Please enter the PIN you created when posting this item.</p>
+            <form id="pinVerifyForm" class="pin-form">
+              <input type="password" id="inputManagePin" maxlength="6" required placeholder="PIN (e.g. 1234)" autofocus>
+              <button type="submit" class="btn btn-primary">Unlock Manager</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Authenticated Dashboard -->
+        <div id="manageDashboardView" style="display: none;">
+          <div class="manage-top-bar">
+            <div>
+              <h4 id="manageItemTitle">Item Title</h4>
+              <p class="text-muted" id="manageItemStatusText">Status: Active</p>
+            </div>
+            <div class="manage-actions">
+              <select id="quickStatusSelect" class="status-select">
+                <option value="active">Status: Active</option>
+                <option value="claimed">Status: Claimed</option>
+                <option value="returned">Status: Returned</option>
+              </select>
+              <button class="btn btn-danger-sm" id="deleteItemBtn">Delete Post</button>
+            </div>
+          </div>
+
+          <!-- Claims Section -->
+          <div class="claims-section">
+            <div class="claims-header">
+              <h5>Received Claim Requests (<span id="claimsCount">0</span>)</h5>
+              <p>Review claimant proof and approve the real owner to reveal contact info.</p>
+            </div>
+            <div id="claimsList" class="claims-list">
+              <!-- Claims dynamic items -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Claim Status Checker (For Seekers) -->
+  <div class="modal-overlay" id="checkClaimModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h3>Track Your Claim Status</h3>
+          <p class="modal-subtitle">Check if the finder has approved your ownership proof</p>
+        </div>
+        <button class="close-modal" id="closeCheckClaimModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="trackClaimForm">
+          <div class="form-group">
+            <label class="form-label" for="trackItemId">Item ID *</label>
+            <input type="number" id="trackItemId" required placeholder="e.g. 1">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trackClaimId">Your Claim ID *</label>
+            <input type="number" id="trackClaimId" required placeholder="e.g. 5">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trackEmail">Your Email Address *</label>
+            <input type="email" id="trackEmail" required placeholder="The email you used to claim">
+          </div>
+          <button type="submit" class="btn btn-primary full-width">Check Status</button>
+        </form>
+
+        <div id="trackResultBox" class="track-result-box" style="display: none;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p><strong>FindIt</strong> — Helping lost items find their way back home.</p>
+      <p class="footer-tech">Frontend: HTML5, CSS3, JavaScript (Fetch API) &bull; Backend: Python Flask &amp; SQLite</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
